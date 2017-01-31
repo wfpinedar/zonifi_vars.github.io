@@ -1,5 +1,12 @@
 ## Bienvenido a la pagina para Zonificación de Variables
 
+Este proceso se divide en: 
+
+# EDAFOCLIMATICO
+# SOCIOECONOMICO
+# SOCIOECOSISTEMICO
+
+
 You can use the [editor on GitHub](https://github.com/wfpinedar/zonifi_vars.github.io/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
 
 Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
