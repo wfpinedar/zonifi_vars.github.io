@@ -6,6 +6,7 @@ class AptiTool(object):
     """Implementation for Upra_add_ins_addin.tool (Tool)"""
     def __init__(self):
         self.enabled = True
+        self.varpath = r''
         self.shape = "NONE" # Can set to "Line", "Circle" or "Rectangle" for interactive shape drawing and to activate the onLine/Polygon/Circle event sinks.
     def get_geodatabase_path(self, input_table):
         '''Return the Geodatabase path from the input table or feature class.
@@ -27,8 +28,9 @@ class AptiTool(object):
         varpath = gdbpath + r'\1_VARIABLES.gdb'
         listFC = []
         dts = []
+        ft = []
         if os.path.exists(varpath):
-            pythonaddins.MessageBox(varpath, "GDB for Variables")
+            #pythonaddins.MessageBox(varpath, "GDB for Variables")
             arcpy.env.workspace = r''+varpath
             print arcpy.env.workspace
             #listFC = arcpy.ListFeatureClasses(wild_card="V_*")
@@ -39,12 +41,16 @@ class AptiTool(object):
                 dta= [d + '\\' + f for f in ft]
                 dts.extend(dta)
                 listFC.extend(ft)
-                listFC.extend(ras)
-                dts.extend(ras)
-            pythonaddins.MessageBox(listFC, "Variables")
-            pythonaddins.MessageBox(dts, "Variables")
+            listFC.extend(ras)
+            dts.extend(ras)
+            #pythonaddins.MessageBox(listFC, "Variables")
+            #pythonaddins.MessageBox(dts, "Variables")
         else:
             pythonaddins.MessageBox("GDB for Variables don't exist", "Error GDB is not present")
+        Listvars.refresh()
+        for layer in dts:
+            Listvars.items.append(layer)
+        tool.deactivate()
         pass
     def onMouseUp(self, x, y, button, shift):
         pass
@@ -69,15 +75,21 @@ class AptiTool(object):
     def onRectangle(self, rectangle_geometry):
         pass
 
-class ComboVars(object):
-    """Implementation for Upra_add_ins_addin.liistvars (ComboBox)"""
+class Listvars(object):
+    """Implementation for Upra_add_ins_addin.Listvars (ComboBox)"""
     def __init__(self):
-        self.items = ["item1", "item2"]
+        self.items = []
         self.editable = True
         self.enabled = True
-        self.dropdownWidth = 'WWWWWW'
-        self.width = 'WWWWWW'
+        self.dropdownWidth = 'WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW'
+        self.width = 'WWWWWWWWWWWWWWWWWWWWW'
     def onSelChange(self, selection):
+        mxd = arcpy.mapping.MapDocument("CURRENT")
+        df = arcpy.mapping.ListDataFrames(mxd)[0]
+        addLayer = arcpy.mapping.Layer(tool.varpath + selection)
+        pythonaddins.MessageBox(tool.varpath + selection, "Seleccion")
+        arcpy.mapping.AddLayer(df, addLayer, "TOP")
+        tool.deactivate()
         pass
     def onEditChange(self, text):
         pass
@@ -86,10 +98,11 @@ class ComboVars(object):
     def onEnter(self):
         pass
     def refresh(self):
+        self.items = []
         pass
 
 class UpdateLayers(object):
-    """Implementation for Upra_add_ins_addin.lyrup (Extension)"""
+    """Implementation for Upra_add_ins_addin.UpdateLayers (Extension)"""
     def __init__(self):
         # For performance considerations, please remove all unused methods in this class.
         self.enabled = True
