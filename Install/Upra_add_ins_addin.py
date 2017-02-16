@@ -21,10 +21,11 @@ class AptiTool(object):
     def onMouseDown(self, x, y, button, shift):
         pass
     def onMouseDownMap(self, x, y, button, shift):
+        Listvars.items = []
         a = pythonaddins.GetSelectedTOCLayerOrDataFrame()
         gdbpath = self.get_geodatabase_path(a.workspacePath)
         message = "Your mouse clicked \n longitud: " + str(x) + ", \n Latitud: " + str(y) + "\n And your selected layer is: " + a.name + "\n Located in gdb: " + a.workspacePath + "\n And GDB PATH is: " + gdbpath
-        pythonaddins.MessageBox(message, "My Coordinates")
+        #pythonaddins.MessageBox(message, "My Coordinates")
         varpath = gdbpath + r'\1_VARIABLES.gdb'
         listFC = []
         dts = []
@@ -87,7 +88,7 @@ class Listvars(object):
         mxd = arcpy.mapping.MapDocument("CURRENT")
         df = arcpy.mapping.ListDataFrames(mxd)[0]
         addLayer = arcpy.mapping.Layer(tool.varpath + selection)
-        pythonaddins.MessageBox(tool.varpath + selection, "Seleccion")
+        pythonaddins.MessageBox("Cargando: %s"%(tool.varpath + selection), "Carga Layer")
         arcpy.mapping.AddLayer(df, addLayer, "TOP")
         tool.deactivate()
         pass
