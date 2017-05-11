@@ -105,19 +105,33 @@ class Listvars(object):
     def onSelChange(self, selection):
         mxd = arcpy.mapping.MapDocument("CURRENT")
         df = arcpy.mapping.ListDataFrames(mxd)[0]
+        print tool.varpath,selection
         addLayer = arcpy.mapping.Layer(tool.varpath + selection)
+        print addLayer
         pythonaddins.MessageBox("Cargando: %s"%(tool.varpath + selection), "Carga Layer")
         arcpy.mapping.AddLayer(df, addLayer, "TOP")
-        layer = arcpy.CreateFeatureclass_management(r'{0}\Users\{1}\Documents\ArcGIS\Default.gdb'.format(os.environ['systemdrive'],os.environ['username']), "temporal", "POINT").getOutput(0)
-        fcaux = r'{0}\Users\{1}\Documents\ArcGIS\Default.gdb\temporal'.format(os.environ['systemdrive'],os.environ['username'])
-        cursor = arcpy.da.InsertCursor(fcaux, ["SHAPE@XY"])
+        layer = arcpy.CreateFeatureclass_management(r'{0}\Users\{1}\Documents\ArcGIS\Default.gdb'.format(os.environ['systemdrive'],os.environ['username']), "data", "POINT").getOutput(0)
+        fcaux = r'{0}\Users\{1}\Documents\ArcGIS\Default.gdb\data'.format(os.environ['systemdrive'],os.environ['username'])
+        ras = arcpy.mapping.ListLayers(mxd)
+        ras = [ i for i in ras if i.isRasterLayer]
+        names = [i.name for i in ras]
+        [arcpy.AddField_management (fcaux, field_name=i.name, field_type="TEXT") for i in ras]
+        vec = [ i for i in ras if not i.isRasterLayer and i.name != 'data']
+        rdat = [arcpy.GetCellValue_management(i.name,"{} {}".format(tool.x,tool.y),"1").getOutput(0) for i in ras]
+        print rdat
+        fields = ["SHAPE@XY"]
+        fields.extend(names)
+        cursor = arcpy.da.InsertCursor(fcaux, fields)
         xy = (tool.x, tool.y)
-        cursor.insertRow([xy])
+        fields = [xy]
+        fields.extend(rdat)
+        cursor.insertRow(fields)
         extent = arcpy.Extent(tool.x-5000, tool.y-5000, tool.x+5000, tool.y+5000)
         #tool.deactivate()
         mxd = arcpy.mapping.MapDocument("CURRENT")
+        lyr=arcpy.mapping.ListLayers(mxd)
         df = arcpy.mapping.ListDataFrames(mxd)[0]
-        lyr = arcpy.mapping.ListLayers(mxd, "temporal", df)[0]
+        lyr = arcpy.mapping.ListLayers(mxd, "data", df)[0]
         arcpy.SelectLayerByAttribute_management(lyr, "NEW_SELECTION", ' "OBJECTID" = 1 ')
         #df.zoomToSelectedFeatures()
         df.extent = extent#lyr.getSelectedExtent()
