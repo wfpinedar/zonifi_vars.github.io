@@ -8,6 +8,8 @@ class AptiTool(object):
         self.enabled = True
         self.varpath = r''
         self.shape = "NONE" # Can set to "Line", "Circle" or "Rectangle" for interactive shape drawing and to activate the onLine/Polygon/Circle event sinks.
+        self.x = 0
+        self.y = 0
     def get_geodatabase_path(self, input_table):
         '''Return the Geodatabase path from the input table or feature class.
         :param input_table: path to the input table or feature class
@@ -46,11 +48,27 @@ class AptiTool(object):
             dts.extend(ras)
             #pythonaddins.MessageBox(listFC, "Variables")
             #pythonaddins.MessageBox(dts, "Variables")
+        elif os.path.exists(gdbpath + r'\1_VARIABLE.gdb'):
+            varpath = r''+ gdbpath + r'\1_VARIABLE.gdb'
+            arcpy.env.workspace = varpath
+            print arcpy.env.workspace
+            #listFC = arcpy.ListFeatureClasses(wild_card="V_*")
+            ras =  arcpy.ListRasters(wild_card="V_*")
+            dt = arcpy.ListDatasets()
+            for d in dt:
+                ft = arcpy.ListFeatureClasses(wild_card="V*", feature_type = 'All', feature_dataset = d)
+                dta= [d + '\\' + f for f in ft]
+                dts.extend(dta)
+                listFC.extend(ft)
+            listFC.extend(ras)
+            dts.extend(ras)
         else:
             pythonaddins.MessageBox("GDB for Variables don't exist", "Error GDB is not present")
         Listvars.refresh()
         for layer in dts:
             Listvars.items.append(layer)
+        self.x = x
+        self.y = y
         tool.deactivate()
         pass
     def onMouseUp(self, x, y, button, shift):
@@ -90,8 +108,20 @@ class Listvars(object):
         addLayer = arcpy.mapping.Layer(tool.varpath + selection)
         pythonaddins.MessageBox("Cargando: %s"%(tool.varpath + selection), "Carga Layer")
         arcpy.mapping.AddLayer(df, addLayer, "TOP")
-        tool.deactivate()
-        pass
+        layer = arcpy.CreateFeatureclass_management(r'{0}\Users\{1}\Documents\ArcGIS\Default.gdb'.format(os.environ['systemdrive'],os.environ['username']), "temporal", "POINT").getOutput(0)
+        fcaux = r'{0}\Users\{1}\Documents\ArcGIS\Default.gdb\temporal'.format(os.environ['systemdrive'],os.environ['username'])
+        cursor = arcpy.da.InsertCursor(fcaux, ["SHAPE@XY"])
+        xy = (tool.x, tool.y)
+        cursor.insertRow([xy])
+        extent = arcpy.Extent(tool.x-5000, tool.y-5000, tool.x+5000, tool.y+5000)
+        #tool.deactivate()
+        mxd = arcpy.mapping.MapDocument("CURRENT")
+        df = arcpy.mapping.ListDataFrames(mxd)[0]
+        lyr = arcpy.mapping.ListLayers(mxd, "temporal", df)[0]
+        arcpy.SelectLayerByAttribute_management(lyr, "NEW_SELECTION", ' "OBJECTID" = 1 ')
+        #df.zoomToSelectedFeatures()
+        df.extent = extent#lyr.getSelectedExtent()
+
     def onEditChange(self, text):
         pass
     def onFocus(self, focused):
