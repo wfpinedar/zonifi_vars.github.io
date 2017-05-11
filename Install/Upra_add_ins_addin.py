@@ -105,9 +105,7 @@ class Listvars(object):
     def onSelChange(self, selection):
         mxd = arcpy.mapping.MapDocument("CURRENT")
         df = arcpy.mapping.ListDataFrames(mxd)[0]
-        print tool.varpath,selection
         addLayer = arcpy.mapping.Layer(tool.varpath + selection)
-        print addLayer
         pythonaddins.MessageBox("Cargando: %s"%(tool.varpath + selection), "Carga Layer")
         arcpy.mapping.AddLayer(df, addLayer, "TOP")
         layer = arcpy.CreateFeatureclass_management(r'{0}\Users\{1}\Documents\ArcGIS\Default.gdb'.format(os.environ['systemdrive'],os.environ['username']), "data", "POINT").getOutput(0)
@@ -118,7 +116,6 @@ class Listvars(object):
         [arcpy.AddField_management (fcaux, field_name=i.name, field_type="TEXT") for i in ras]
         vec = [ i for i in ras if not i.isRasterLayer and i.name != 'data']
         rdat = [arcpy.GetCellValue_management(i.name,"{} {}".format(tool.x,tool.y),"1").getOutput(0) for i in ras]
-        print rdat
         fields = ["SHAPE@XY"]
         fields.extend(names)
         cursor = arcpy.da.InsertCursor(fcaux, fields)
