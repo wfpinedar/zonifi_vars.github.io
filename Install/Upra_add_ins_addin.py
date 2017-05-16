@@ -102,6 +102,24 @@ class Listvars(object):
         self.enabled = True
         self.dropdownWidth = 'WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW'
         self.width = 'WWWWWWWWWWWWWWWWWWWWW'
+
+    def getValoresVector(self,targetFeatures,joinFeatures,out_feature_class,campo):
+        join_operation="JOIN_ONE_TO_ONE"
+        join_type="KEEP_COMMON"
+        match_option="INTERSECT"
+        search_radius=""
+        distance_field_name=""
+        field_mapping=""
+        arcpy.SpatialJoin_analysis (target_features=targetFeatures, join_features=joinFeatures, out_feature_class=out_feature_class,
+        join_operation=join_operation, join_type=join_type, field_mapping=field_mapping, match_option=match_option, search_radius=search_radius, distance_field_name=distance_field_name)
+        valor=[x[0] for x in arcpy.da.SearchCursor(out_feature_class,campo)][0]
+        return valor
+
+    def getCampoPrefijo(self,capa,prefijos):
+        campos_capa_join=[campo.name for campo in arcpy.Describe(capa).fields]
+        campos_join=[campo for p in prefijos  for campo in campos_capa_join if p in campo]
+        return campos_join[0]
+
     def onSelChange(self, selection):
         mxd = arcpy.mapping.MapDocument("CURRENT")
         df = arcpy.mapping.ListDataFrames(mxd)[0]
@@ -123,6 +141,20 @@ class Listvars(object):
         fields = [xy]
         fields.extend(rdat)
         cursor.insertRow(fields)
+        vect = arcpy.mapping.ListLayers(mxd)
+        prefijos=["APT_","W_","_APT","gridcode","GRIDCODE"]
+        vec = [ i for i in vect if i.isFeatureLayer and i.name != 'data']
+        vector_name =[i.name for i in vec]
+        [arcpy.AddField_management (fcaux, field_name=i.name, field_type="TEXT") for i in vec]
+        vector_fields=[self.getCampoPrefijo(i,prefijos) for i in vec]
+        valores_vector = [str(self.getValoresVector(fcaux,i,"in_memory//"+arcpy.Describe(i).name,self.getCampoPrefijo(i,prefijos))) for i in vec]
+
+        with arcpy.da.UpdateCursor(fcaux, vector_name) as cursor:
+            for fila in cursor:
+                for num in xrange(len(valores_vector)):
+                    expre = """fila[%s] = valores_vector[%s]"""%(str(num),str(num))
+                    exec(expre)
+                cursor.updateRow(fila)
         extent = arcpy.Extent(tool.x-5000, tool.y-5000, tool.x+5000, tool.y+5000)
         #tool.deactivate()
         mxd = arcpy.mapping.MapDocument("CURRENT")
