@@ -112,7 +112,12 @@ class Listvars(object):
         field_mapping=""
         arcpy.SpatialJoin_analysis (target_features=targetFeatures, join_features=joinFeatures, out_feature_class=out_feature_class,
         join_operation=join_operation, join_type=join_type, field_mapping=field_mapping, match_option=match_option, search_radius=search_radius, distance_field_name=distance_field_name)
+        mxd = arcpy.mapping.MapDocument("CURRENT")
+        df = arcpy.mapping.ListDataFrames(mxd)[0]
+        ly=arcpy.mapping.ListLayers(mxd,arcpy.Describe(out_feature_class).name)[0]
+        arcpy.mapping.RemoveLayer(df,ly)
         valor=[x[0] for x in arcpy.da.SearchCursor(out_feature_class,campo)][0]
+
         return valor
 
     def getCampoPrefijo(self,capa,prefijos):
