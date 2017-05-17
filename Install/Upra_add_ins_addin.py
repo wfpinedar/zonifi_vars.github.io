@@ -133,7 +133,7 @@ class Listvars(object):
         arcpy.mapping.AddLayer(df, addLayer, "TOP")
         layer = arcpy.CreateFeatureclass_management(r'{0}\Users\{1}\Documents\ArcGIS\Default.gdb'.format(os.environ['systemdrive'],os.environ['username']), "data", "POINT").getOutput(0)
         fcaux = r'{0}\Users\{1}\Documents\ArcGIS\Default.gdb\data'.format(os.environ['systemdrive'],os.environ['username'])
-        ras = arcpy.mapping.ListLayers(mxd)
+        ras = arcpy.mapping.ListLayers(mxd, "V_*")
         ras = [ i for i in ras if i.isRasterLayer]
         names = [i.name for i in ras]
         [arcpy.AddField_management (fcaux, field_name=i.name, field_type="TEXT") for i in ras]
@@ -146,7 +146,7 @@ class Listvars(object):
         fields = [xy]
         fields.extend(rdat)
         cursor.insertRow(fields)
-        vect = arcpy.mapping.ListLayers(mxd)
+        vect = arcpy.mapping.ListLayers(mxd, "V_*")
         prefijos=["APT_","W_","_APT","gridcode","GRIDCODE"]
         vec = [ i for i in vect if i.isFeatureLayer and i.name != 'data']
         vector_name =[i.name for i in vec]
