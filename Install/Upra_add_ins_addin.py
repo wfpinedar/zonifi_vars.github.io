@@ -51,7 +51,7 @@ class AptiTool(object):
         elif os.path.exists(gdbpath + r'\1_VARIABLE.gdb'):
             varpath = r''+ gdbpath + r'\1_VARIABLE.gdb'
             arcpy.env.workspace = varpath
-            print arcpy.env.workspace
+            #print arcpy.env.workspace
             #listFC = arcpy.ListFeatureClasses(wild_card="V_*")
             ras =  arcpy.ListRasters(wild_card="V_*")
             dt = arcpy.ListDatasets()
